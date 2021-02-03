@@ -67,6 +67,7 @@ uint8_t  toSend = 0;
 uint16_t val;
 unsigned long zoneMillis;
 unsigned long aliveMillis;
+uint16_t pirDelay = 60000; // 60 seconds to allow PIR to settle
 
 // Configuration struct
 struct config_t {
@@ -83,12 +84,12 @@ zone_t zone[ALARM_ZONES];
 /* 
  * Registration 
  */
-void send_conf(){
+void sendConf(){
   int8_t result;
   uint16_t count = 0;
 
   // Wait some time to avoid contention
-  delay(MY_ADDRESS*200);   
+  delay(MY_ADDRESS * 1000);   
   out_msg.address = 0;
   out_msg.ack = FLAG_ACK;
   out_msg.ctrl = FLAG_DTA;
@@ -182,6 +183,15 @@ void setDefault(){
   strcpy(&conf.reg[5+(REG_LEN*9)], "Remote siren"); // Set default name
 }
 /*
+ * Send ping command to gateway 
+ */
+void sendPing(void) {
+  out_msg.address = 0;
+  out_msg.ctrl = FLAG_CMD;
+  out_msg.data_length = 2; // PING = 2
+  RS485.sendMsgWithAck(&out_msg, RS485_REPEAT);
+}
+/*
  * Setup
  */
 void setup() {
@@ -197,9 +207,7 @@ void setup() {
   // Free IO ports
   //pinMode(7, OUTPUT); digitalWrite(7, LOW); 
   //pinMode(8, OUTPUT); digitalWrite(8, LOW); 
-  
-  RS485.begin(19200, MY_ADDRESS);
-
+    
   #if DEBUG_ON
     mySerial.begin(19200);
     mySerial.println(F("Start"));
@@ -208,10 +216,13 @@ void setup() {
   eeprom_read_block((void*)&conf, (void*)0, sizeof(conf)); // Read current configuration
   if (conf.version != VERSION) setDefault();
 
-  delay(MY_ADDRESS * 1000);
- 
-  zoneMillis  = millis() - 60000; // Let PIR settle up after power on
-  aliveMillis = millis() - (PING_DELAY - 10000); // Do ping at start PING_DELAY - 10 seconds
+  // Delay 10 seconds to send conf
+  delay(10000);
+  RS485.begin(19200, MY_ADDRESS);
+  sendConf();
+
+  zoneMillis  = millis();
+  aliveMillis = millis();
 }
 /*
  * Main loop
@@ -236,7 +247,7 @@ void loop() {
     if (in_msg.ctrl == FLAG_CMD) {
       switch (in_msg.data_length) {
         case 1: // Request for registration
-          send_conf(); 
+          sendConf(); 
           // Clear sent zones, maybe GW was restarted
           for(uint8_t ii = 0; ii < ALARM_ZONES; ii++) {
             CLEAR_ZONE_SENT(zone[ii].setting);
@@ -275,8 +286,9 @@ void loop() {
   } // RS485 message
 
   // Zone
-  if ((unsigned long)(millis() - zoneMillis) > 250) {
-    zoneMillis = millis();
+  if ((unsigned long)(millis() - zoneMillis) > pirDelay) {
+    zoneMillis = millis(); 
+    pirDelay = 250; // PIR settled
     // Clear toSend
     toSend = 0;
     // Cycle trough zones
@@ -372,13 +384,7 @@ void loop() {
   // Send alive packet every PING_DELAY
   if ((unsigned long)(millis() - aliveMillis) > PING_DELAY){
     aliveMillis = millis();
-    out_msg.address = 0;
-    out_msg.ctrl = FLAG_CMD;
-    out_msg.buffer[0] = 0;
-    out_msg.buffer[1] = 0;
-    out_msg.buffer[2] = 0;
-    out_msg.data_length = 2; // PING = 2
-    RS485.sendMsgWithAck(&out_msg, RS485_REPEAT);
+    sendPing();
   }
 
 } // End main loop
