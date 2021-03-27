@@ -21,6 +21,7 @@ SoftwareSerial mySerial(8, 7); // RX, TX
 #define MY_ADDRESS       5    // 0 is gateway, 15 is multicast
 #define VERSION          100  // Version of EEPROM struct
 #define PING_DELAY       1200000 // In milliseconds, 20 minutes
+#define SENSOR_DELAY     600000  // In milliseconds, 10 minutes
 // Constants
 #define REG_LEN          21   // Size of one conf. element
 #define NODE_NAME_SIZE   16   // As defined in gateway
@@ -64,6 +65,7 @@ int8_t   resp;
 uint8_t  mode = 0;
 uint8_t  pos;
 uint8_t  toSend = 0;
+uint8_t  acOff = 0;
 uint16_t val;
 unsigned long zoneMillis;
 unsigned long aliveMillis;
@@ -72,8 +74,14 @@ uint16_t pirDelay = 60000; // 60 seconds to allow PIR to settle
 // Configuration struct
 struct config_t {
   uint16_t version;
-  char     reg[REG_LEN * 10]; // Number of elements on this node
+  char     reg[REG_LEN * 11]; // Number of elements on this node
 } conf;
+
+// Float conversion
+union u_tag {
+    uint8_t  b[4];
+    float    fval;
+} u;
 
 // Zone runtime variables
 typedef struct {
@@ -123,55 +131,55 @@ void setDefault(){
   conf.reg[1+(REG_LEN*0)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*0)]  = 12;        // Zone index
   conf.reg[3+(REG_LEN*0)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*0)]  = B00011111; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*0)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*0)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*1)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*1)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*1)]  = 13;        // Zone index
   conf.reg[3+(REG_LEN*1)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*1)]  = B00011111; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*1)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*1)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*2)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*2)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*2)]  = 14;        // Zone index
   conf.reg[3+(REG_LEN*2)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*2)]  = B00011111; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*2)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*2)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*3)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*3)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*3)]  = 15;        // Zone index
   conf.reg[3+(REG_LEN*3)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*3)]  = B00011111; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*3)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*3)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*4)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*4)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*4)]  = 16;        // Zone index
   conf.reg[3+(REG_LEN*4)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*4)]  = B00011111; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*4)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*4)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*5)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*5)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*5)]  = 17;        // Zone index
   conf.reg[3+(REG_LEN*5)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*5)]  = B00011111; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*5)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*5)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*6)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*6)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*6)]  = 18;        // Zone index
   conf.reg[3+(REG_LEN*6)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*6)]  = B00011111; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*6)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*6)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*7)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*7)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*7)]  = 19;        // Zone index
   conf.reg[3+(REG_LEN*7)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*7)]  = B00011111; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*7)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*7)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*8)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*8)]  = 'D';       // Digital
   conf.reg[2+(REG_LEN*8)]  = 20;        // Zone index
   conf.reg[3+(REG_LEN*8)]  = B00000010; // Digital, unbalanced, PIR as tamper
-  conf.reg[4+(REG_LEN*8)]  = B00011111; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*8)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*8)], 0, NODE_NAME_SIZE);
   strcpy(&conf.reg[5+(REG_LEN*8)], "Box tamper"); // Set default name
   conf.reg[0+(REG_LEN*9)]  = 'H';       // Horn/Siren 
@@ -181,6 +189,15 @@ void setDefault(){
   conf.reg[4+(REG_LEN*9)]  = B00011110; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*9)], 0, NODE_NAME_SIZE);
   strcpy(&conf.reg[5+(REG_LEN*9)], "Remote siren"); // Set default name
+  conf.reg[0+(REG_LEN*10)]  = 'S';       // Sensor
+  conf.reg[1+(REG_LEN*10)]  = 'D';       // Digital 
+  conf.reg[2+(REG_LEN*10)]  = 1;         // Local index, !Used in code bellow to match!
+  conf.reg[3+(REG_LEN*10)]  = B00000000; // Default setting
+  conf.reg[4+(REG_LEN*10)]  = B00011110; // Default setting, group='not set', disabled   
+  memset(&conf.reg[5+(REG_LEN*10)], 0, NODE_NAME_SIZE);
+  strcpy(&conf.reg[5+(REG_LEN*10)], "Remote AC Off"); // Set default name
+
+  eeprom_update_block((const void*)&conf, (void*)0, sizeof(conf)); // Save current configuration 
 }
 /*
  * Send ping command to gateway 
@@ -189,6 +206,22 @@ void sendPing(void) {
   out_msg.address = 0;
   out_msg.ctrl = FLAG_CMD;
   out_msg.data_length = 2; // PING = 2
+  RS485.sendMsgWithAck(&out_msg, RS485_REPEAT);
+}
+/*
+ * Send float value to gateway 
+ */
+void sendValue(uint8_t element, float value) {
+  u.fval = value; 
+  out_msg.address = 0;
+  out_msg.ctrl = FLAG_DTA;
+  out_msg.data_length = 7;
+  out_msg.buffer[0] = conf.reg[(REG_LEN*element)];
+  out_msg.buffer[1] = conf.reg[1+(REG_LEN*element)];
+  out_msg.buffer[2] = conf.reg[2+(REG_LEN*element)];
+  out_msg.buffer[3] = u.b[0]; out_msg.buffer[4] = u.b[1];
+  out_msg.buffer[5] = u.b[2]; out_msg.buffer[6] = u.b[3];   
+  // Send to GW 
   RS485.sendMsgWithAck(&out_msg, RS485_REPEAT);
 }
 /*
@@ -236,8 +269,13 @@ void loop() {
 
   // Check AC state
   // The signal turns to be "High" when the power supply turns OFF
-  if (digitalRead(AC_OFF) == HIGH) {
-    // Not sure what to do yet
+  if ((digitalRead(AC_OFF) == HIGH) && (acOff == 0)) {
+    acOff = 1;    
+    sendValue(10, (float)1); // Send it to GW
+  }
+  if ((digitalRead(AC_OFF) == LOW) && (acOff == 1)) {
+    acOff = 0;
+    sendValue(10, (float)0); // Send it to GW
   }
   
   // Look for incomming transmissions
