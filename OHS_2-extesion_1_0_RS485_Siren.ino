@@ -9,17 +9,17 @@
 #include <LibRS485v2.h>
 #include <avr/eeprom.h> // Global configuration for in chip EEPROM
 
-// Enable 1 or diable 0 SoftwareSerial.
-// SoftwareSerial can internaly break some interrupts, timings ...
-#define DEBUG_ON 0
+// Enable 1 or disable 0 SoftwareSerial.
+// SoftwareSerial is slow, and can internaly break some interrupts, timings ...
+#define DEBUG_ON 1
 #if DEBUG_ON
 #include <SoftwareSerial.h>
 SoftwareSerial mySerial(8, 7); // RX, TX
 #endif
 
 // Node settings
-#define MY_ADDRESS       5    // 0 is gateway, 15 is multicast
-#define VERSION          100  // Version of EEPROM struct
+#define MY_ADDRESS       5    // Choose 1-14, 0 is gateway, 15 is multicast
+#define VERSION          101  // Version of EEPROM struct
 #define PING_DELAY       1200000 // In milliseconds, 20 minutes
 #define SENSOR_DELAY     600000  // In milliseconds, 10 minutes
 // Constants
@@ -131,69 +131,69 @@ void setDefault(){
   conf.reg[1+(REG_LEN*0)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*0)]  = 12;        // Zone index
   conf.reg[3+(REG_LEN*0)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*0)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*0)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*0)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*1)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*1)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*1)]  = 13;        // Zone index
   conf.reg[3+(REG_LEN*1)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*1)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*1)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*1)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*2)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*2)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*2)]  = 14;        // Zone index
   conf.reg[3+(REG_LEN*2)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*2)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*2)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*2)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*3)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*3)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*3)]  = 15;        // Zone index
   conf.reg[3+(REG_LEN*3)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*3)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*3)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*3)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*4)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*4)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*4)]  = 16;        // Zone index
   conf.reg[3+(REG_LEN*4)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*4)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*4)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*4)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*5)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*5)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*5)]  = 17;        // Zone index
   conf.reg[3+(REG_LEN*5)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*5)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*5)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*5)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*6)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*6)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*6)]  = 18;        // Zone index
   conf.reg[3+(REG_LEN*6)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*6)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*6)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*6)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*7)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*7)]  = 'A';       // Analog
   conf.reg[2+(REG_LEN*7)]  = 19;        // Zone index
   conf.reg[3+(REG_LEN*7)]  = B10000100; // Analog, balanced
-  conf.reg[4+(REG_LEN*7)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*7)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*7)], 0, NODE_NAME_SIZE);
   conf.reg[0+(REG_LEN*8)]  = 'Z';       // Zone
   conf.reg[1+(REG_LEN*8)]  = 'D';       // Digital
   conf.reg[2+(REG_LEN*8)]  = 20;        // Zone index
   conf.reg[3+(REG_LEN*8)]  = B00000010; // Digital, unbalanced, PIR as tamper
-  conf.reg[4+(REG_LEN*8)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*8)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*8)], 0, NODE_NAME_SIZE);
   strcpy(&conf.reg[5+(REG_LEN*8)], "Box tamper"); // Set default name
   conf.reg[0+(REG_LEN*9)]  = 'H';       // Horn/Siren 
   conf.reg[1+(REG_LEN*9)]  = 'D';       // Digital 
   conf.reg[2+(REG_LEN*9)]  = 1;         // Local index, !Used in code bellow to match!
   conf.reg[3+(REG_LEN*9)]  = B00000000; // Default setting
-  conf.reg[4+(REG_LEN*9)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*9)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*9)], 0, NODE_NAME_SIZE);
   strcpy(&conf.reg[5+(REG_LEN*9)], "Remote siren"); // Set default name
   conf.reg[0+(REG_LEN*10)]  = 'S';       // Sensor
   conf.reg[1+(REG_LEN*10)]  = 'D';       // Digital 
   conf.reg[2+(REG_LEN*10)]  = 1;         // Local index, !Used in code bellow to match!
   conf.reg[3+(REG_LEN*10)]  = B00000000; // Default setting
-  conf.reg[4+(REG_LEN*10)]  = B00011110; // Default setting, group='not set', disabled   
+  conf.reg[4+(REG_LEN*10)]  = B00011111; // Default setting, group='not set', disabled   
   memset(&conf.reg[5+(REG_LEN*10)], 0, NODE_NAME_SIZE);
   strcpy(&conf.reg[5+(REG_LEN*10)], "Remote AC Off"); // Set default name
 
@@ -265,6 +265,7 @@ void loop() {
   // The signal is "Low" when the voltage of battery is under 11V
   if (digitalRead(BATTERY_OK) == LOW) {    
     return; // Go to loop(), and do nothing
+    // TODO Thnik up what to do if remote battery is depleated.    
   }
 
   // Check AC state
@@ -329,6 +330,9 @@ void loop() {
     pirDelay = 250; // PIR settled
     // Clear toSend
     toSend = 0;
+    #if DEBUG_ON
+      mySerial.print("Zone: ");
+    #endif
     // Cycle trough zones
     for(uint8_t zoneNum = 0; zoneNum < ALARM_ZONES; zoneNum++) {
       if (GET_CONF_ZONE_ENABLED(conf.reg[4+(REG_LEN*zoneNum)])) {
@@ -392,8 +396,15 @@ void loop() {
             zone[zoneNum].lastEvent = 'T';
             break;
         }
+        #if DEBUG_ON          
+          mySerial.print(zoneNum); mySerial.print("=");
+          mySerial.print(zone[zoneNum].lastEvent); mySerial.print(", ");
+        #endif
       } // zone enabled
     } // for each alarm zone
+    #if DEBUG_ON
+      mySerial.println();
+    #endif
 
     // Send zones if any
     if (toSend > 0) {    
@@ -424,5 +435,14 @@ void loop() {
     aliveMillis = millis();
     sendPing();
   }
+
+  
+  // Relay test, if tamper is OK swith ON the relay.
+  if (zone[8].lastEvent == 'O') {
+    digitalWrite(RELAY, 1);
+  } else {
+    digitalWrite(RELAY, 0);
+  }
+  
 
 } // End main loop
